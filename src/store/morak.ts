@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
 import type { FridgeItem, ShopItem } from '../data/types';
 import { INGREDIENT_MASTER } from '../data/ingredients';
 import { dateAfter } from '../logic/dday';
 import { normalizeName } from '../logic/recommend';
 
-const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+// Supabase(user_ingredient.id 등)가 uuid를 쓰므로 로컬 id도 uuid로 생성
+const uid = (): string => Crypto.randomUUID();
 
 export const masterByName = (name: string) =>
   INGREDIENT_MASTER.find((m) => normalizeName(m.name) === normalizeName(name));
@@ -137,7 +139,18 @@ export const useMorak = create<MorakState>()(
     }),
     {
       name: 'morak-store-v2',
+      version: 1,
       storage: createJSONStorage(() => AsyncStorage),
+      // v0 → v1: 예전 로컬 id(비-uuid)를 uuid로 교체 (Supabase uuid 컬럼과 호환)
+      migrate: (persisted: unknown) => {
+        const s = persisted as Partial<MorakState>;
+        const isUuid = (id: string) => /^[0-9a-f-]{36}$/i.test(id);
+        return {
+          ...s,
+          fridge: (s.fridge ?? []).map((f) => (isUuid(f.id) ? f : { ...f, id: uid() })),
+          shopping: (s.shopping ?? []).map((i) => (isUuid(i.id) ? i : { ...i, id: uid() })),
+        } as MorakState;
+      },
     },
   ),
 );

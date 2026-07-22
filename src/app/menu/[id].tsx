@@ -21,6 +21,7 @@ import { MENUS } from '../../data/menus';
 import { ddayKind, ddayLabel } from '../../logic/dday';
 import { matchMenu, normalizeName } from '../../logic/recommend';
 import { masterByName, useMorak } from '../../store/morak';
+import { recordMade } from '../../api/sync';
 
 const shortName = (n: string) => n.replace(/\s*\(.*\)/, '');
 
@@ -226,6 +227,7 @@ export default function MenuDetailScreen() {
             <Pill
               onPress={() => {
                 markMade(menu.id);
+                recordMade(menu.id);
                 setMade(true);
               }}
             >

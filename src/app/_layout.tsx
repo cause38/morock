@@ -10,6 +10,7 @@ import {
   Nunito_800ExtraBold,
 } from '@expo-google-fonts/nunito';
 import { M } from '../design/tokens';
+import { initSync } from '../api/sync';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -27,6 +28,10 @@ export default function RootLayout() {
   React.useEffect(() => {
     if (loaded) SplashScreen.hideAsync().catch(() => {});
   }, [loaded]);
+
+  React.useEffect(() => {
+    initSync();
+  }, []);
 
   if (!loaded) return null;
 

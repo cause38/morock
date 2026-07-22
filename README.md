@@ -36,7 +36,23 @@ src/
 └─ store/            # zustand + AsyncStorage (익명 로컬 저장)
 ```
 
-- 시드 수정: `docs/seed/*.csv` 편집 후 `node scripts/gen-seed.js`
+- 시드 수정: `docs/seed/*.csv` 편집 후 `node scripts/gen-seed.js` (로컬) / `node scripts/seed-supabase.js` (원격)
 - 추천 규칙: 필수 재료 충족 여부 + 유통기한 임박 가중치(D-1 +30 / D-2 +20 / D-3 +10)
-- 백엔드: 1차는 로컬 저장. Supabase 스키마는 `docs/supabase-schema.sql` 준비됨 (Phase 2에서 연결)
 - 전체 기획: `docs/도시락_메뉴_추천_서비스_기획서.md` (v0.5)
+
+## 백엔드 — Supabase
+
+로컬 우선(익명 로컬 저장) + 백그라운드 동기화. `.env`에 키가 없으면 순수 로컬 모드로 동작합니다.
+
+- `.env.example`을 `.env`로 복사하고 프로젝트 URL/anon key 입력 (프로젝트: `morak`, ref `gkloloygthncowfhgkil`)
+- 스키마는 `supabase/migrations/` — 변경 시 `npx supabase db push`
+- 익명 로그인 → `user_ingredient`/`shopping_list` 미러 동기화, `user_menu_history` 기록
+- 서비스 롤 키 등 비밀 값은 `.env.local` (커밋 금지)
+
+## 배포
+
+| 대상 | 방법 |
+|------|------|
+| 웹 (Vercel) | `npx vercel build --prod && npx vercel deploy --prebuilt --prod` → https://morak-umber.vercel.app (개인 스코프 `parkjinjus-projects`) |
+| 앱 빌드 | `eas login` → `eas init` → `eas build --profile preview` (eas.json 구성됨) |
+| OTA 업데이트 | `eas update --branch production` (JS/스타일 수정은 심사 없이 반영) |
